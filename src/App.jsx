@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home'; 
 import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
@@ -14,15 +14,19 @@ import Help from './pages/Help';
 import Exchange from './pages/Exchange/Exchange';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword.jsx';
-import Blog from './pages/Blog'; 
+import Blog from './pages/Blog.jsx'; 
 import Uberuns from './pages/Uberuns.jsx'; // Importiere die "Über uns" Seite
 import Footer from './components/Footer.jsx'; // Importiere den Footer
 import PageNotFound from './pages/PageNotFound.jsx'; // Importiere die 404-Seite
+import VerifyEmail from './components/VerifyEmail.jsx';
 
 function App() {
+
   return (
-    <Router>
-      <Navbar /> {/* Die Navbar wird immer angezeigt, unabhängig von der Route */}
+<>
+    <Navbar /> {/* Die Navbar wird immer angezeigt, unabhängig von der Route */}
+ 
+      
       
       <div className="container"> {/* Optional: Ein Container für deinen Seiteninhalt */}
         <Routes>
@@ -30,7 +34,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/home" element={<Home />} />
- 
+          <Route path="/verify" element={<VerifyEmail />} />
           <Route path="/help" element={<Help />} />
           <Route path="/events" element={<Events />} />
           <Route path="/events/:id" element={<EventDetail />} />
@@ -39,14 +43,14 @@ function App() {
           <Route path="/exchange/*" element={<Exchange />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
-          <Route path="/blog" element={<Blog />} /> 
+          <Route path="/blogs" element={<Blog />} /> 
           <Route path="/profile" element={<Profile />} />
           <Route path="/uberuns" element={<Uberuns />} /> {/* Route für die "Über uns" Seite */}
           <Route path="*" element={<PageNotFound />} /> {/* Fallback für nicht gefundene Seiten */}
         </Routes>
       </div>
       <Footer />
-    </Router>
+     </>
   );
 }
 export default App;

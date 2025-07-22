@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from 'lucide-react'; 
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 import './Login.css'; 
 
 function Login() {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext); // <--- NEU
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -34,29 +36,39 @@ function Login() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nickname: formData.username,
-          password: formData.password
-        })
-      });
+      // const response = await fetch('http://localhost:5000/api/auth/login', {
+      // const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     nickname: formData.username,
+      //     password: formData.password
+      //   })
+      // });
 
-      const data = await response.json();
+      // const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Login fehlgeschlagen');
+      // if (!response.ok) {
+      //   throw new Error(data.message || 'Login fehlgeschlagen');
+      // }
+
+      // // ✅ Token & User im localStorage speichern
+      // localStorage.setItem('token', data.token);
+      // localStorage.setItem('currentUser', JSON.stringify(data.user));
+
+      // console.log('✅ Eingeloggt als:', data.user.nickname);
+
+      const result = await login(formData.username, formData.password);
+
+      if (!result.success) {
+        throw new Error(result.message || 'Login fehlgeschlagen');
       }
 
-      // ✅ Token & User im localStorage speichern
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('currentUser', JSON.stringify(data.user));
-
-      console.log('✅ Eingeloggt als:', data.user.nickname);
-
+      console.log('✅ Eingeloggt!');
       // Weiterleitung nach Login
-      navigate('/dashboard'); // Passe das Ziel ggf. an
+      // navigate('/dashboard'); // Passe das Ziel ggf. an
+      navigate('/profile');
+
 
     } catch (err) {
       console.error('❌ Login-Fehler:', err.message);

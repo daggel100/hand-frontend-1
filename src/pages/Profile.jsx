@@ -1,29 +1,44 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import './Profile.css';
 
 const Profile = () => {
+  const { user, loading, login, register, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [profileData, setProfileData] = useState({
-    username: 'max_mustermann',
-    email: 'max.mustermann@email.com',
-    password: '••••••••••',
-    firstName: 'Max',
-    lastName: 'Mustermann',
-    profileImage: null,
-    addresses: [
-      {
-        id: 1,
-        type: 'Hauptadresse',
-        district: 'München Nord',
-        city: 'München',
-        zip: '80331',
-        street: 'Musterstraße 123',
-        isPrimary: true
-      }
-    ]
-  });
+  // editData erst initialisieren, wenn Bearbeiten gestartet wird!
+  const [editData, setEditData] = useState(null);
 
-  const [editData, setEditData] = useState({ ...profileData, addresses: [...profileData.addresses] });
+  // Erst prüfen, ob user und addresses existieren, bevor darauf zugegriffen wird!
+  if (!user || !user.addresses) {
+    return <div>Lade Profil...</div>;
+  }
+  const profileData = user;
+  const hauptAdresse = profileData.addresses && profileData.addresses[0];
+
+  // if (!profileData)
+  //   return 
+  //     <div> Lade Profil...</div>
+  // const [profileData, setProfileData] = useState({
+  //   username: 'max_mustermann',
+  //   email: 'max.mustermann@email.com',
+  //   password: '••••••••••',
+  //   firstName: 'Max',
+  //   lastName: 'Mustermann',
+  //   profileImage: null,
+  //   addresses: [
+  //     {
+  //       id: 1,
+  //       type: 'Hauptadresse',
+  //       district: 'München Nord',
+  //       city: 'München',
+  //       zip: '80331',
+  //       street: 'Musterstraße 123',
+  //       isPrimary: true
+  //     }
+  //   ]
+  // });
+
+  // const [editData, setEditData] = useState({ ...profileData, addresses: [...profileData.addresses] });
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -33,13 +48,44 @@ const Profile = () => {
     });
   };
 
-  const handleSave = () => {
-    setProfileData({ 
-      ...editData, 
-      addresses: editData.addresses.map(addr => ({ ...addr }))
-    });
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL;
+      const res = await fetch(`${API_URL}/auth/users/me`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + localStorage.getItem('token')
+        },
+        body: JSON.stringify({
+          addresses: editData.addresses,
+        })
+      });
+      if (res.ok) {
+        // Userdaten neu laden, damit die neuen Adressen angezeigt werden
+        if (typeof window !== 'undefined' && window.location) {
+          // Hole die aktuellen Userdaten aus dem AuthContext
+          // (fetchUser ist im AuthContext, aber nicht exportiert)
+          // Workaround: Seite neu laden, aber Hooks bleiben stabil
+          window.location.reload();
+        }
+        setIsEditing(false);
+        setEditData(null);
+      } else {
+        console.error('Fehler beim Speichern');
+      }
+    } catch (error) {
+      console.error('Fehler beim Speichern:', error);
+    }
   };
+
+  // const handleSave = () => {
+  //   setProfileData({ 
+  //     ...editData, 
+  //     addresses: editData.addresses.map(addr => ({ ...addr }))
+  //   });
+  //   setIsEditing(false);
+  // };
 
   const handleCancel = () => {
     setEditData({ 
@@ -174,7 +220,10 @@ const Profile = () => {
                   {isEditing ? editData.firstName : profileData.firstName} {isEditing ? editData.lastName : profileData.lastName}
                 </h2>
                 <p className="profile-username">
-                  @{isEditing ? editData.username : profileData.username}
+                  @{isEditing 
+                  ? (editData.username || editData.nickname)
+                  : (profileData.nickname || profileData.username)
+                }
                 </p>
               </div>
             </div>
@@ -191,11 +240,11 @@ const Profile = () => {
                       {isEditing ? (
                         <input
                           type="text"
-                          value={editData.username}
+                          value={editData.username || editData.nickname}
                           onChange={(e) => handleInputChange('username', e.target.value)}
                         />
                       ) : (
-                        <div className="input-display">{profileData.username}</div>
+                        <div className="input-display">{profileData.username || profileData.nickname}</div>
                       )}
                     </div>
                   </div>
@@ -231,35 +280,24 @@ const Profile = () => {
               </div>
 
               {/* Personal Information */}
+              {/*
+                Anzeige von Vorname und Nachname aus der Hauptadresse (addresses[0])
+                Diese Felder werden im Adress-Objekt gespeichert und nicht auf oberster Ebene des Users.
+                Das sorgt für Datenschutz und Flexibilität bei mehreren Adressen.
+              */}
               <div className="form-group">
                 <h3 className="section-title">Persönliche Daten</h3>
                 <div className="form-row">
                   <div className="input-group">
                     <label>Vorname</label>
                     <div className="input-container">
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={editData.firstName}
-                          onChange={(e) => handleInputChange('firstName', e.target.value)}
-                        />
-                      ) : (
-                        <div className="input-display">{profileData.firstName}</div>
-                      )}
+                      <div className="input-display">{hauptAdresse?.firstName || '—'}</div>
                     </div>
                   </div>
                   <div className="input-group">
                     <label>Nachname</label>
                     <div className="input-container">
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={editData.lastName}
-                          onChange={(e) => handleInputChange('lastName', e.target.value)}
-                        />
-                      ) : (
-                        <div className="input-display">{profileData.lastName}</div>
-                      )}
+                      <div className="input-display">{hauptAdresse?.lastName || '—'}</div>
                     </div>
                   </div>
                 </div>
@@ -283,7 +321,7 @@ const Profile = () => {
 
                 <div className="addresses-container">
                   {currentAddresses.map((address, index) => (
-                    <div key={address.id} className="address-card">
+                    <div key={address._id || address.id || address.zip || index} className="address-card">
                       <div className="address-card-header">
                         <div className="address-title-section">
                           <h4 className={`address-title ${address.isPrimary ? 'primary' : 'secondary'}`}>

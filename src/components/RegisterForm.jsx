@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './RegisterForm.css';
 import logo from '../assets/logo.png';
 import register from '../assets/animation/Animation - register.json';
 import Lottie from 'lottie-react';
+
+
+
 const RegisterForm = ({ onSuccess }) => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -51,14 +54,15 @@ const RegisterForm = ({ onSuccess }) => {
     if (Object.keys(errors).length) return;
     setIsSubmitting(true);
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           nickname: formData.nickname,
           email: formData.email,
           password: formData.password,
-          adress: {
+          addresses: [
+            {
             firstName: formData.firstName,
             lastName: formData.lastName,
             street: formData.street,
@@ -66,7 +70,8 @@ const RegisterForm = ({ onSuccess }) => {
             district: formData.district,
             state: formData.state,
             zip: parseInt(formData.zip, 10),
-          },
+          }
+        ]
         }),
       });
       const data = await response.json();

@@ -5,23 +5,29 @@ function VerifyEmail() {
   const [error, setError] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
+
   useEffect(() => {
     const verifyEmail = async () => {
       // Verifizierungscode aus der URL lesen
       const params = new URLSearchParams(location.search);
+      const email = params.get('email'); // <--- NEU
       const code = params.get('code');
-      if (!code) {
+      if (!code || !email) {
+      
+      // if (!code) {
         setError('Kein Verifizierungscode gefunden');
         return;
       }
       try {
         // Anfrage an das Backend senden
-        const response = await fetch('http://localhost:5000/api/auth/verify', {
+        // const response = await fetch('http://localhost:5000/api/auth/verify', {
+         const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ code }),
+          // body: JSON.stringify({ code }),
+           body: JSON.stringify({ code, email }), // <--- NEU
         });
         const data = await response.json();
         if (response.ok) {
@@ -36,6 +42,7 @@ function VerifyEmail() {
         console.error('Verifizierungsfehler:', err);
       }
     };
+
     verifyEmail();
   }, [location.search, navigate]);
   return (

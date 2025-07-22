@@ -1,8 +1,12 @@
-import React from 'react';
+
 import './Navbar.css';
 import logo from '../assets/logo.png'; // Importiere das Logo, falls du es in der Navbar verwenden möchtest
+import { useAuth } from '../context/AuthContext';
 
 function Navbar() {
+
+  const { user, logout } = useAuth(); // <--- NEU
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
@@ -45,7 +49,7 @@ function Navbar() {
                 </a>
               </li>
               <li className="nav-item">
-                <a href="/blog" className="nav-links">
+                <a href="/blogs" className="nav-links">
                   Blog
                 </a>
               </li>
@@ -59,6 +63,13 @@ function Navbar() {
                   Profil
                 </a>
               </li>
+              {user && (
+                <li className="nav-item">
+                  <button onClick={logout} className="nav-links" style={{background: 'none', border: 'none', cursor: 'pointer'}}>
+                    Logout
+                  </button>
+                </li>
+              )}
             </ul>
           </div>
         </div>
